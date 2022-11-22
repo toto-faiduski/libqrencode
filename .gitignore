@@ -4,8 +4,10 @@
 *.gcno
 *.gcov
 *.gcda
+*.bak
 .deps/
 .libs/
+.vs/
 autom4te.cache/
 m4/
 CMakeLists.txt.user
@@ -28,6 +30,7 @@ stamp-h1
 qrencode
 qrencode.1
 libqrencode.pc
+out/
 tests/create_frame_pattern
 tests/create_mqr_frame_pattern
 tests/pthread_qrencode

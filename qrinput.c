@@ -32,6 +32,7 @@
 #include "mqrspec.h"
 #include "bitstream.h"
 #include "qrinput.h"
+#include "split.h"
 
 /******************************************************************************
  * Utilities
@@ -234,6 +235,11 @@ int QRinput_append(QRinput *input, QRencodeMode mode, int size, const unsigned c
 	return 0;
 }
 
+int QRinput_appendOptimized(QRinput* input, QRencodeMode hint, int casesensitive, const char* string)
+{
+	return Split_splitStringToQRinput(string, input, hint, casesensitive);
+}
+
 /**
  * Insert a structured-append header to the head of the input data.
  * @param input input data.
@@ -245,7 +251,7 @@ int QRinput_append(QRinput *input, QRencodeMode mode, int size, const unsigned c
  * @throw EINVAL invalid parameter.
  * @throw ENOMEM unable to allocate memory.
  */
-STATIC_IN_RELEASE int QRinput_insertStructuredAppendHeader(QRinput *input, int size, int number, unsigned char parity)
+/*STATIC_IN_RELEASE*/ int QRinput_insertStructuredAppendHeader(QRinput *input, int size, int number, unsigned char parity)
 {
 	QRinput_List *entry;
 	unsigned char buf[3];
@@ -729,6 +735,16 @@ static int QRinput_encodeModeStructure(QRinput_List *entry, BitStream *bstream, 
  * FNC1
  *****************************************************************************/
 
+static int QRinput_encodeModeFNC1First(BitStream* bstream)
+{
+	int ret;
+
+	ret = BitStream_appendNum(bstream, 4, QRSPEC_MODEID_FNC1FIRST);
+	if (ret < 0) return -1;
+
+	return 0;
+}
+
 static int QRinput_checkModeFNC1Second(int size)
 {
 	if(size != 1) return -1;
@@ -818,7 +834,7 @@ static int QRinput_encodeModeECI(QRinput_List *entry, BitStream *bstream)
 
 int QRinput_check(QRencodeMode mode, int size, const unsigned char *data)
 {
-	if((mode == QR_MODE_FNC1FIRST && size < 0) || size <= 0) return -1;
+	if (mode != QR_MODE_FNC1FIRST && size <= 0) return -1;
 
 	switch(mode) {
 		case QR_MODE_NUM:
@@ -1056,6 +1072,9 @@ static int QRinput_encodeBitStream(QRinput_List *entry, BitStream *bstream, int 
 				break;
 			case QR_MODE_ECI:
 				ret = QRinput_encodeModeECI(entry, bstream);
+				break;
+			case QR_MODE_FNC1FIRST:
+				ret = QRinput_encodeModeFNC1First(bstream);
 				break;
 			case QR_MODE_FNC1SECOND:
 				ret = QRinput_encodeModeFNC1Second(entry, bstream);

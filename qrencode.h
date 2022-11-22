@@ -200,6 +200,20 @@ extern QRinput *QRinput_newMQR(int version, QRecLevel level);
 extern int QRinput_append(QRinput *input, QRencodeMode mode, int size, const unsigned char *data);
 
 /**
+ * Split the input string (null terminated) into QRinput.
+ * @param input input object.
+ * @param hint give QR_MODE_KANJI if the input string contains Kanji character encoded in Shift-JIS. If not, give QR_MODE_8.
+ * @param casesensitive 0 for case-insensitive encoding (all alphabet characters are replaced to UPPER-CASE CHARACTERS.
+ * @param string input string
+ * @retval 0 success.
+ * @retval -1 an error occurred. errno is set to indicate the error. See
+ *               Exceptions for the details.
+ * @throw EINVAL invalid input object.
+ * @throw ENOMEM unable to allocate memory for input objects.
+ */
+extern int QRinput_appendOptimized(QRinput* input, QRencodeMode hint, int casesensitive, const char* string);
+
+/**
  * Append ECI header.
  * @param input input object.
  * @param ecinum ECI indicator number (0 - 999999)
@@ -348,6 +362,19 @@ extern int QRinput_setFNC1First(QRinput *input);
  * Set FNC1-2nd position flag and application identifier.
  */
 extern int QRinput_setFNC1Second(QRinput *input, unsigned char appid);
+
+/**
+ * Insert a structured-append header to the head of the input data.
+ * @param input input data.
+ * @param size number of structured symbols.
+ * @param number index number of the symbol. (1 <= number <= size)
+ * @param parity parity among input data. (NOTE: each symbol of a set of structured symbols has the same parity data)
+ * @retval 0 success.
+ * @retval -1 error occurred and errno is set to indeicate the error. See Execptions for the details.
+ * @throw EINVAL invalid parameter.
+ * @throw ENOMEM unable to allocate memory.
+ */
+extern int QRinput_insertStructuredAppendHeader(QRinput* input, int size, int index, unsigned char parity);
 
 /******************************************************************************
  * QRcode output (qrencode.c)
